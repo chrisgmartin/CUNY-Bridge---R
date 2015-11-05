@@ -1,0 +1,100 @@
+---
+  title: "Custom Choose Function in R"
+  output:
+    html_document:
+    toc: true
+    theme: united
+---
+
+**Question:** How do I create a custom-made *"n choose r"* formula in R without using the *choose()* or *factorial()* built-in fucntions?
+
+**Answer:** Great question! Below I will give an example code that I custom-made, first using the individual pieces and embedding the full code below.
+    
+- Step 1:
+      Create the function definition and variables. Using the function *get.choose*, the user will be able to input the *n choose r* values.
+      The function is made up of *a* which is your final *n* value, *b* which is your final *r* value, and *c* which is the difference between *a* and *b*
+
+```
+get.choose <- function(a, b, c = a - b){
+```
+      
+- Step 2:
+        Create spaceholders that will be used later. These spaceholders will have the value *n* which corresponds to our final *n* value, and value *r* which corresponds to our final *r* value in the choose formula.
+        Value *z* is a spaceholder that will be used to calculate the factor output for our value *c* which was the difference of *a* and *b* (translating to the choose formula it = n - r).
+
+```
+  n <- 1
+  r <- 1
+  z <- 1
+```
+
+- Step 3:
+    Calculate the factor of *a* which is *n!*.
+    This says that for every integer between 1 and *a*, multiply *a* by each integer.
+    For example, using the number 12 as *a* (or *n*): the function will multiply 12 * 1 * 2 * ... up to 12 (not including 12, since it is already included first)
+
+```
+for(i in 1:a){
+  n <- n * ((1:a)[i])
+}
+```
+
+- Step 4:
+    Calculate the factor of *b* which is *r!*.
+    To make it simple, we'll reuse the previous calculation substituting *b* for *a* and *r* for *n*.
+
+```
+for(i in 1:b){
+r <- r * ((1:b)[i])
+}
+```
+
+- Step 5:
+    Calculate the factor of *c* which is *(n-r)!*.
+    To make it simple, we'll reuse the previous calculations substituting *c* for *b* and *z* for *(n-r)*.
+
+```
+for(i in 1:c){
+z <- z * ((1:c)[i])
+}
+```
+
+- Step 6:
+  Use the values we've just calculated to solve the formula: *n! / ((n-r)! * r)*.
+  We'll call the value of this calculation *ans* which is a made up name (abbreviation for answer), print the *ans* value, and close the bracket completing the function.
+
+```
+ans <- n / (z * r)
+print(ans)
+}
+```
+
+- Step 7:
+  To use, the user will simply enter their values into the *get.chooose* function (i.e. get.choose(6,2) to solve 6 choose 2).
+
+```
+get.choose(6,2)
+```
+
+
+**Final Output:**
+```
+get.choose <- function(a, b, c = a - b){
+  n <- 1
+  r <- 1
+  z <- 1
+  for(i in 1:a){
+    n <- n * ((1:a)[i])
+  }
+  for(i in 1:b){
+    r <- r * ((1:b)[i])
+  }
+  for(i in 1:c){
+    z <- z * ((1:c)[i])
+  }
+  ans <- n / (z * r)
+  print(ans)
+}
+```
+
+render("input.Rmd", "all")
