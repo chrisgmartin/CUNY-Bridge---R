@@ -1,0 +1,76 @@
+---
+title: "R Final Project - Houston Flights"
+output: html_document
+---
+
+**Question: What day (as name, not date) in May 2011 did American Airlines fly the fastest? And how did May compare to the rest of the year?**
+
+For our analysis of the *hflights* database, we'll need to install the *hflights* package and check the headers.
+```
+install.packages("hflights")
+```
+```{r}
+require(hflights)
+head(hflights)
+```
+
+To answer our question, we'll only need a few columns so we'll create a new data frame with only certain columns.
+```{r}
+flight1 <- hflights[1:4]
+flight2 <- hflights[7]
+flight3 <- hflights[16]
+houstonf <- cbind(flight1, flight2, flight3)
+head(houstonf)
+```
+
+Now we'll add a new column to see how the *ActualElapsedTime* and *Distance* connect as an *MileperMin* column, this can also be thought of more commonly as "speed".
+```{r}
+MilesperMin <- hflights$Distance / hflights$ActualElapsedTime
+houstonf <- cbind(houstonf, MilesperMin)
+head(houstonf)
+```
+
+Since our question only deals with American Airlines, we can filter all other *Carriers* out and remove NA's from the *ActualElapsedTime* and *MilesperMin* field since they are likely flights that never left ground and will affect our analysis.
+```{r}
+houstonf <- subset(houstonf, UniqueCarrier == "AA")
+houstonf <- subset(houstonf, !is.na(Distance))
+houstonf <- subset(houstonf, !is.na(MilesperMin))
+head(houstonf)
+```
+
+A simple way to get statistics on this data frame is to use the *summary* function.
+```{r}
+summary(houstonf)
+```
+
+But we actually want to see information this using graphs to make it more appealing for users, especially if we have to show it off. Let's import the *ggplot2* package.
+```{r}
+require(ggplot2)
+```
+
+If we look at the boxplot for *Distance*, we can see by the *summary* that we're not going to get much out. So the *MilesperMin* will stand in to show the average speed of all flights in 2011 by American Airlines out of Houston.
+```{r, echo=FALSE}
+boxplot(houstonf$Distance)
+boxplot(houstonf$MilesperMin)
+```
+
+But it doesn't quite answer our initial question. Next we'll try the density plot.
+```{r, echo=FALSE}
+ggplot(data = houstonf) + geom_density(aes(x = MilesperMin), fill = "grey50")
+```
+
+Getting closer, but not quite answering the question. We'll need to filter only for May 2011, and show the plot by days. From this plot we can see much simpler that Day 5 (Friday) had the fastest flight, while Day 1 (Monday) had the slowest flight.
+```{r}
+houstonfMay <- subset(houstonf, Month == 5)
+ggplot(houstonfMay, aes(x = DayOfWeek, y = MilesperMin)) + geom_point(aes(color = DayofMonth))
+```
+
+**Answer: Friday had the fastest flight in May**
+
+
+To get our second answer (comparing May's speed to the rest of the year), *ggplot2* once again comes in handy.
+```{r}
+ggplot(houstonf, aes(x = DayOfWeek, y = MilesperMin)) + geom_point(aes(color = houstonf$DayofMonth)) + facet_wrap(~Month)
+```
+
+
