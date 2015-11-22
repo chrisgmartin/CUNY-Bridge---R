@@ -14,38 +14,38 @@ This RMarkdown file explains the steps taken and results of:
 
 
 As may be customary with charts, we can import the *ggplot2* package to create better looking plots.
-```
+```{r}
 require(ggplot2)
 ```
   
 Now import the dataset.
-```
+```{r}
 theUrl <- "http://vincentarelbundock.github.io/Rdatasets/csv/reshape2/tips.csv"
 tips <- read.table(file = theUrl, header = TRUE, sep = ",")
 head(tips)
 ```
 
 Looks like there is already an index in the first column so let's remove that.
-```
+```{r}
 tips$X <- NULL
 head(tips)
 ```
 
 We can see the titles could use some clean-up.
-```
+```{r}
 colnames(tips) <- c("Total Bill", "Tip", "Sex of Tipper", "Smoker", "Day", "Meal", "Party Size")
 head(tips)
 ```
 
 And add a column to show what percent the *Tip* is for the *Total Bill*
-```
+```{r}
 tiprcnt <- tips$'Tip' / tips$'Total Bill'
 tips[, "Tip Percent"] <- tiprcnt
 head(tips)
 ```
 
 Much better. But *Days* as a character doesn't help, so we'll translate them to day number, using Sunday as the end of the week Day Number 7.
-```
+```{r}
 #add a column, just like before
 daynum <- tips$'Day'
 tips[, "Day Number"] <- daynum
@@ -69,40 +69,40 @@ Now, would be interesting to get a few looks at the data and figure out if we ne
 
 **SCATTER PLOTS**
 First: a general scatter plot (base R).
-```
+```{r}
 plot(tips$'Tip Percent' ~ tips$`Party Size`, data = tips, xlab = "Party Size", ylab = "Tip Percent")
 ```
 
 Since party size is absolute (not continuous), maybe *Party Size* isn't the right column to look at. Let's try *Total Bill* and add a regression line.
-```
+```{r}
 plot(tips$'Tip Percent' ~ tips$`Total Bill`, data = tips, xlab = "Total Bill", ylab = "Tip Percent")
 abline(lm(tips$`Tip Percent`~tips$`Total Bill`), col="red")
 ```
 
 Better. Now let's try it on *ggplot2* and find out how *Party Size* affects the *Tip Percent*
-```
+```{r}
 ggplot(tips, aes(x = tips$`Total Bill`, y = tips$'Tip Percent')) + geom_point(aes(color = tips$`Party Size`))
 ```
 
 We can also see how *Meal* might affect the *Tip Percent* and make the dots more visible when an overlap occurs, and add a regression line with bands using *geom_smooth()*.
-```
+```{r}
 ggplot(tips, aes(x = tips$`Total Bill`, y = tips$'Tip Percent')) + geom_point(aes(color = tips$`Meal`), shape = 1) + geom_smooth()
 ```
 
 
 **BOX PLOTS**
 As seen from the scatterplots (namely, the base R plot with regression line), the higher bills tend to have a lower tip percentage but not my much and not entirely true. I don't think there is any conclusive evidence from this analysis. Let's see what we can get from Box Plots.
-```
+```{r}
 boxplot(tips$'Tip Percent')
 ```
 
 The first to thrid quartiles are in about the 14-19% range, with notable outliers. As expected, the lower bound is greater than 0% laying around the 3% range. Using *ggplot2* we'll see it in a slightly different view using *geom_violin()*
-```
+```{r}
 ggplot(tips, aes(y = tips$`Tip Percent`,x = tips$`Total Bill`)) + geom_violin()
 ```
 
 Our boxplot looks like a stingray, howing higher density around 15%, tapering off around 20%. Layering on our awesome scatterplot from before, as well as the regression line, we'll get an even better view of how the mean may affect the *Total Bill* and density.
-```
+```{r}
 ggplot(tips, aes(y = tips$`Tip Percent`,x = tips$`Total Bill`)) + geom_violin() + geom_point(aes(color = tips$`Meal`), shape = 1) + geom_smooth(method=lm)
 ```
 
@@ -111,22 +111,22 @@ ggplot(tips, aes(y = tips$`Tip Percent`,x = tips$`Total Bill`)) + geom_violin() 
 Rounding out our chart series, we'll look at how histograms can add to the analysis.
 
 Starting as always with the base R histogram, we'll continue with *Tip Percent* for frequency and set some labels.
-```
+```{r}
 hist(tips$`Tip Percent`, main = "Frequency of Tips", xlab = "Tip Percent")
 ```
 
 Using *ggplot2*:
-```
+```{r}
 ggplot(tips, aes(x = tips$`Tip Percent`)) + geom_histogram()
 ```
 
 This doesn't give us very specific information so we'll want to expand the bins (number of columns) to better see the breakouts.
-```
+```{r}
 hist(tips$`Tip Percent`, breaks=40, main = "Frequency of Tips", xlab = "Tip Percent")
 ```
 
 We'll spice it up and add some color and a distribution curve.
-```
+```{r}
 hist(tips$`Tip Percent`, breaks=40, main = "Frequency of Tips", xlab = "Tip Percent", col="green")
 curve(dnorm(x, mean=mean(tips$`Tip Percent`), sd=sd(tips$`Tip Percent`)), add=TRUE, col="darkblue", lwd=2) 
 ```
