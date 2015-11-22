@@ -1,0 +1,146 @@
+---
+title: "R Week 3 Assignment - Mushrooms Dataset"
+output: html_document
+---
+  
+When going out either alone or with friends, in the United States there is an unwritten rule of thumb for 15% tip. Lets see how the *tips* database looks on charts to help us make more educated decisions on how much to tip and when.
+  
+This RMarkdown file explains the steps taken and results of:
+-Importing the tips dataset
+-Modifying the data when needed
+-Add calculated columns for analysis use
+-Chart data in a histogram, boxplot, and scatterplot
+-Draw conclusions when possible
+
+
+As may be customary with charts, we can import the *ggplot2* package to create better looking plots.
+```
+require(ggplot2)
+```
+  
+Now import the dataset.
+```
+theUrl <- "http://vincentarelbundock.github.io/Rdatasets/csv/reshape2/tips.csv"
+tips <- read.table(file = theUrl, header = TRUE, sep = ",")
+head(tips)
+```
+
+Looks like there is already an index in the first column so let's remove that.
+```
+tips$X <- NULL
+head(tips)
+```
+
+We can see the titles could use some clean-up.
+```
+colnames(tips) <- c("Total Bill", "Tip", "Sex of Tipper", "Smoker", "Day", "Meal", "Party Size")
+head(tips)
+```
+
+And add a column to show what percent the *Tip* is for the *Total Bill*
+```
+tiprcnt <- tips$'Tip' / tips$'Total Bill'
+tips[, "Tip Percent"] <- tiprcnt
+head(tips)
+```
+
+Much better. But *Days* as a character doesn't help, so we'll translate them to day number, using Sunday as the end of the week Day Number 7.
+```
+#add a column, just like before
+daynum <- tips$'Day'
+tips[, "Day Number"] <- daynum
+head(tips)
+#add levels for each day number
+levels(tips$'Day Number') <- c(levels(tips$'Day Number'), c(4,5,6,7))
+#convert the day to its number
+tips$'Day Number' <-
+tips$`Day Number`[tips$`Day Number` == "Thur"] <- 4
+tips$'Day Number' <-
+tips$`Day Number`[tips$`Day Number` == "Fri"] <- 5
+tips$'Day Number' <-
+tips$`Day Number`[tips$`Day Number` == "Sat"] <- 6
+tips$'Day Number' <-
+tips$`Day Number`[tips$`Day Number` == "Sun"] <- 7
+```
+
+
+Now, would be interesting to get a few looks at the data and figure out if we need to make any changes, add any columns, or maybe just tweak some charts to be more useful.
+
+
+**SCATTER PLOTS**
+First: a general scatter plot (base R).
+```
+plot(tips$'Tip Percent' ~ tips$`Party Size`, data = tips, xlab = "Party Size", ylab = "Tip Percent")
+```
+
+Since party size is absolute (not continuous), maybe *Party Size* isn't the right column to look at. Let's try *Total Bill* and add a regression line.
+```
+plot(tips$'Tip Percent' ~ tips$`Total Bill`, data = tips, xlab = "Total Bill", ylab = "Tip Percent")
+abline(lm(tips$`Tip Percent`~tips$`Total Bill`), col="red")
+```
+
+Better. Now let's try it on *ggplot2* and find out how *Party Size* affects the *Tip Percent*
+```
+ggplot(tips, aes(x = tips$`Total Bill`, y = tips$'Tip Percent')) + geom_point(aes(color = tips$`Party Size`))
+```
+
+We can also see how *Meal* might affect the *Tip Percent* and make the dots more visible when an overlap occurs, and add a regression line with bands using *geom_smooth()*.
+```
+ggplot(tips, aes(x = tips$`Total Bill`, y = tips$'Tip Percent')) + geom_point(aes(color = tips$`Meal`), shape = 1) + geom_smooth()
+```
+
+
+**BOX PLOTS**
+As seen from the scatterplots (namely, the base R plot with regression line), the higher bills tend to have a lower tip percentage but not my much and not entirely true. I don't think there is any conclusive evidence from this analysis. Let's see what we can get from Box Plots.
+```
+boxplot(tips$'Tip Percent')
+```
+
+The first to thrid quartiles are in about the 14-19% range, with notable outliers. As expected, the lower bound is greater than 0% laying around the 3% range. Using *ggplot2* we'll see it in a slightly different view using *geom_violin()*
+```
+ggplot(tips, aes(y = tips$`Tip Percent`,x = tips$`Total Bill`)) + geom_violin()
+```
+
+Our boxplot looks like a stingray, howing higher density around 15%, tapering off around 20%. Layering on our awesome scatterplot from before, as well as the regression line, we'll get an even better view of how the mean may affect the *Total Bill* and density.
+```
+ggplot(tips, aes(y = tips$`Tip Percent`,x = tips$`Total Bill`)) + geom_violin() + geom_point(aes(color = tips$`Meal`), shape = 1) + geom_smooth(method=lm)
+```
+
+
+**HISTOGRAM**
+Rounding out our chart series, we'll look at how histograms can add to the analysis.
+
+Starting as always with the base R histogram, we'll continue with *Tip Percent* for frequency and set some labels.
+```
+hist(tips$`Tip Percent`, main = "Frequency of Tips", xlab = "Tip Percent")
+```
+
+Using *ggplot2*:
+```
+ggplot(tips, aes(x = tips$`Tip Percent`)) + geom_histogram()
+```
+
+This doesn't give us very specific information so we'll want to expand the bins (number of columns) to better see the breakouts.
+```
+hist(tips$`Tip Percent`, breaks=40, main = "Frequency of Tips", xlab = "Tip Percent")
+```
+
+We'll spice it up and add some color and a distribution curve.
+```
+hist(tips$`Tip Percent`, breaks=40, main = "Frequency of Tips", xlab = "Tip Percent", col="green")
+curve(dnorm(x, mean=mean(tips$`Tip Percent`), sd=sd(tips$`Tip Percent`)), add=TRUE, col="darkblue", lwd=2) 
+```
+ 
+There are, of course, much better ways to display the data than the methods I've chosen. Examples include using the Day of the Week and Party Size to make better conclusions on how much to tip, finding out which meals tip the best, and whether there is a connection between men/women or smokers/non-smokers. The charts I chose were (while not entirely random) used for examples only.
+
+
+
+
+
+**Sources:**
+'R for Everyone: Advanced Analytics and Graphics' by Jared P Lander
+http://rforpublichealth.blogspot.com/2012/12/basics-of-histograms.html
+http://r-video-tutorial.blogspot.com/2013/06/box-plot-with-r-tutorial.html
+http://www.statmethods.net/graphs/scatterplot.html
+http://www.cookbook-r.com/Graphs/Scatterplots_%28ggplot2%29/
+
