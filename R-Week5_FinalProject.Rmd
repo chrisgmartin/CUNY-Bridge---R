@@ -54,6 +54,11 @@ boxplot(houstonf$Distance)
 boxplot(houstonf$MilesperMin)
 ```
 
+I prefer the violin view to give a better sense of the densities.
+```{r}
+ggplot(houstonf, aes(y = MilesperMin, x = DayOfWeek)) + geom_violin()
+```
+
 But it doesn't quite answer our initial question. Next we'll try the density plot.
 ```{r, echo=FALSE}
 ggplot(data = houstonf) + geom_density(aes(x = MilesperMin), fill = "grey50")
@@ -65,7 +70,7 @@ houstonfMay <- subset(houstonf, Month == 5)
 ggplot(houstonfMay, aes(x = DayOfWeek, y = MilesperMin)) + geom_point(aes(color = DayofMonth))
 ```
 
-**Answer: Friday had the fastest flight in May**
+**Answer: Friday had the fastest flight in May, though Tuesday had more flights (a higher density of flights) with faster speeds than any other day of the week.**
 
 
 To get our second answer (comparing May's speed to the rest of the year), *ggplot2* once again comes in handy.
