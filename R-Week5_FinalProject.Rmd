@@ -70,12 +70,10 @@ houstonfMay <- subset(houstonf, Month == 5)
 ggplot(houstonfMay, aes(x = DayOfWeek, y = MilesperMin)) + geom_point(aes(color = DayofMonth))
 ```
 
-**Answer: Friday had the fastest flight in May, though Tuesday had more flights (a higher density of flights) with faster speeds than any other day of the week.**
+**Answer: Saturday (week day 6) had the fastest flight in May, though Tuesday had more flights (a higher density of flights) with faster speeds than any other day of the week.**
 
 
 To get our second answer (comparing May's speed to the rest of the year), *ggplot2* once again comes in handy.
 ```{r}
 ggplot(houstonf, aes(x = DayOfWeek, y = MilesperMin)) + geom_point(aes(color = houstonf$DayofMonth)) + facet_wrap(~Month)
 ```
-
-
